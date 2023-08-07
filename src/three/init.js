@@ -9,16 +9,14 @@ import { initControls } from "./controls"
 
 export function init() {
 
-
   // 添加场景
   const scene = initScene();
   // 添加相机
   const camera = initCamera(scene);
   const renderer = initRenderer();
-
   const animate = initAnimate(scene, camera, renderer)
 
-  initControls(scene, renderer);
+  initControls(camera, renderer);
 
   // 加载模型
   loaderModel(scene);

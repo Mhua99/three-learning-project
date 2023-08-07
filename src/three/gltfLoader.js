@@ -3,13 +3,22 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import gsap from "gsap";
 
-function carAnimation(car, curve) {
+function carAnimation(car, points) {
+  // const newCurve = curve.copy();
+  console.log(points, "___points", points.length);
+  const newPoints = [...points]
+  const len = Math.floor(Math.random() * newPoints.length);
+  const splitArr = newPoints.splice(0, len);
+  console.log(len, splitArr, "___splitArr", newPoints);
+  const curve = new THREE.CatmullRomCurve3([...newPoints, ...splitArr]);
+  // console.log(curve, "___");
+  // newCurve.points.splice(0, 99)
   const params = {
     curveProgress: 0
   }
   gsap.to(params, {
     curveProgress: 0.999,
-    duration: 30 + Math.floor(Math.random() * 10),
+    duration: 30,
     repeat: -1,
     onUpdate: () => {
       const point = curve.getPoint(params.curveProgress);
@@ -32,13 +41,12 @@ export function loaderModel(scene) {
     scene.add(gltf.scene);
 
     // 场景子元素遍历
-    let curve;
+    const points = [];
     gltf.scene.traverse((child) => {
       if (child.name === "轨迹") {
         const line = child;
         // line.visible = false;
         // 根据点创建曲线
-        const points = [];
         for (
           let i = line.geometry.attributes.position.count - 1;
           i >= 0;
@@ -52,8 +60,6 @@ export function loaderModel(scene) {
             )
           );
         }
-
-        curve = new THREE.CatmullRomCurve3(points);
       }
 
       if (child.name.includes("小车")) {
@@ -62,7 +68,7 @@ export function loaderModel(scene) {
     });
 
     carList.forEach(car => {
-      carAnimation(car, curve)
+      carAnimation(car, points)
     })
   });
 
