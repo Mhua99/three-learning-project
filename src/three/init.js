@@ -13,8 +13,8 @@ export function init() {
   const scene = initScene();
   // 添加相机
   const camera = initCamera(scene);
-  const renderer = initRenderer();
-  const animate = initAnimate(scene, camera, renderer)
+  const { renderer, css3DRenderer } = initRenderer();
+  const animate = initAnimate(scene, camera, renderer, css3DRenderer)
 
   initControls(camera, renderer);
 
@@ -30,7 +30,8 @@ export function init() {
   return {
     camera,
     renderer,
-    animate
+    animate,
+    css3DRenderer
   }
 
 }

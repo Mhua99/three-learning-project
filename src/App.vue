@@ -6,4 +6,5 @@
 import pageScene from "@/components/scene.vue";
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+</style>

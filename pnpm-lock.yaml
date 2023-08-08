@@ -4,6 +4,7 @@ specifiers:
   '@vitejs/plugin-vue': ^4.2.3
   dat.gui: ^0.7.9
   gsap: ^3.12.2
+  sass: ^1.64.2
   three: ^0.155.0
   unplugin-auto-import: ^0.16.6
   vite: ^4.4.5
@@ -17,8 +18,9 @@ dependencies:
 
 devDependencies:
   '@vitejs/plugin-vue': 4.2.3_vite@4.4.8+vue@3.3.4
+  sass: 1.64.2
   unplugin-auto-import: 0.16.6
-  vite: 4.4.8
+  vite: 4.4.8_sass@1.64.2
 
 packages:
 
@@ -296,7 +298,7 @@ packages:
       vite: ^4.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 4.4.8
+      vite: 4.4.8_sass@1.64.2
       vue: 3.3.4
     dev: true
 
@@ -512,6 +514,10 @@ packages:
     resolution: {integrity: sha512-EkYnpG8qHgYBFAwsgsGEqvT1WUidX0tt/ijepx7z8EUJHElykg91RvW1XbkT59T0gZzzszOpjQv7SE41XuIXyQ==}
     dev: false
 
+  /immutable/4.3.2:
+    resolution: {integrity: sha512-oGXzbEDem9OOpDWZu88jGiYCvIsLHMvGw+8OXlpsvTFvIQplQbjg1B1cvKg8f7Hoch6+NGjpPsH1Fr+Mc2D1aA==}
+    dev: true
+
   /is-binary-path/2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
@@ -648,6 +654,16 @@ packages:
       queue-microtask: 1.2.3
     dev: true
 
+  /sass/1.64.2:
+    resolution: {integrity: sha512-TnDlfc+CRnUAgLO9D8cQLFu/GIjJIzJCGkE7o4ekIGQOH7T3GetiRR/PsTWJUHhkzcSPrARkPI+gNWn5alCzDg==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+    dependencies:
+      chokidar: 3.5.3
+      immutable: 4.3.2
+      source-map-js: 1.0.2
+    dev: true
+
   /scule/1.0.0:
     resolution: {integrity: sha512-4AsO/FrViE/iDNEPaAQlb77tf0csuq27EsVpy6ett584EcRTp6pTDLoGWVxCD77y5iU5FauOvhsI4o1APwPoSQ==}
     dev: true
@@ -732,7 +748,7 @@ packages:
       webpack-virtual-modules: 0.5.0
     dev: true
 
-  /vite/4.4.8:
+  /vite/4.4.8_sass@1.64.2:
     resolution: {integrity: sha512-LONawOUUjxQridNWGQlNizfKH89qPigK36XhMI7COMGztz8KNY0JHim7/xDd71CZwGT4HtSRgI7Hy+RlhG0Gvg==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
@@ -763,6 +779,7 @@ packages:
       esbuild: 0.18.17
       postcss: 8.4.27
       rollup: 3.27.2
+      sass: 1.64.2
     optionalDependencies:
       fsevents: 2.3.2
     dev: true

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer"
 
 export function initRenderer() {
   // 初始化渲染器
@@ -10,6 +11,10 @@ export function initRenderer() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
 
-  return renderer
+  const css3DRenderer = new CSS3DRenderer();
+  css3DRenderer.setSize(window.innerWidth, window.innerHeight);
+  document.querySelector("#cssrender").appendChild(css3DRenderer.domElement);
+
+  return { renderer, css3DRenderer }
 }
 

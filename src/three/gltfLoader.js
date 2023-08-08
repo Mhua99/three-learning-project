@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
+import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer"
 import gsap from "gsap";
 
 function carAnimation(car, points) {
@@ -24,6 +25,20 @@ function carAnimation(car, points) {
       }
     },
   });
+}
+
+function createTag(scene) {
+  const element = document.createElement("div");
+  element.className = "carStopInfo";
+  element.innerHTML = `
+    <div class="content">
+      <h3>小车1</h3>
+      <p>停留时间：25分钟</p>
+    </div>
+  `;
+
+  const objectCss3D = new CSS3DObject(element);
+  scene.add(objectCss3D);
 }
 
 export function loaderModel(scene) {
@@ -56,7 +71,7 @@ export function loaderModel(scene) {
         }
       }
 
-      if (child.name.includes("小车")) {
+      if (child.name.includes("小车") && !child.name.includes("停车")) {
         carList.push(child);
       }
     });
@@ -64,6 +79,7 @@ export function loaderModel(scene) {
     carList.forEach(car => {
       carAnimation(car, points)
     })
+    createTag(scene);
   });
 
 }
