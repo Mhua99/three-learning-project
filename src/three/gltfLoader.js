@@ -4,15 +4,10 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import gsap from "gsap";
 
 function carAnimation(car, points) {
-  // const newCurve = curve.copy();
-  console.log(points, "___points", points.length);
   const newPoints = [...points]
   const len = Math.floor(Math.random() * newPoints.length);
-  const splitArr = newPoints.splice(0, len);
-  console.log(len, splitArr, "___splitArr", newPoints);
-  const curve = new THREE.CatmullRomCurve3([...newPoints, ...splitArr]);
-  // console.log(curve, "___");
-  // newCurve.points.splice(0, 99)
+  const splitPoint = newPoints.splice(0, len);
+  const curve = new THREE.CatmullRomCurve3([...newPoints, ...splitPoint]);
   const params = {
     curveProgress: 0
   }
@@ -39,7 +34,6 @@ export function loaderModel(scene) {
   gltfLoader.setDRACOLoader(dracoLoader);
   gltfLoader.load("./model/city.glb", (gltf) => {
     scene.add(gltf.scene);
-
     // 场景子元素遍历
     const points = [];
     gltf.scene.traverse((child) => {
