@@ -1,37 +1,27 @@
-import { initScene } from "./scene";
-import { initCamera } from "./camera"
+import Main from "./main"
 import { loaderModel } from "./gltfLoader"
 import { initLight } from "./light"
 import { initAxes } from "./axes"
-import { initRenderer } from "./renderer"
-import { initAnimate } from "./animate"
-import { initControls } from "./controls"
+import initTest from "./test"
 
 export function init() {
 
-  // 添加场景
-  const scene = initScene();
-  // 添加相机
-  const camera = initCamera(scene);
-  const { renderer, css3DRenderer } = initRenderer();
-  const animate = initAnimate(scene, camera, renderer, css3DRenderer)
-
-  initControls(camera, renderer);
+  const main = new Main();
 
   // 加载模型
-  loaderModel(scene);
+  loaderModel(main.scene);
 
   // 初始化灯光
-  initLight(scene);
+  initLight(main.scene);
 
   // 辅助轴
-  initAxes(scene);
+  initAxes(main.scene);
+
+  // 测试
+  initTest(main.scene);
 
   return {
-    camera,
-    renderer,
-    animate,
-    css3DRenderer
+    main
   }
 
 }

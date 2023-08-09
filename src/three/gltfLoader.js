@@ -27,18 +27,22 @@ function carAnimation(car, points) {
   });
 }
 
-function createTag(scene) {
+function createBoard(car, name) {
   const element = document.createElement("div");
   element.className = "carStopInfo";
   element.innerHTML = `
-    <div class="content">
-      <h3>小车1</h3>
+    <div class="main">
+      <h3>${name}</h3>
       <p>停留时间：25分钟</p>
     </div>
   `;
 
   const objectCss3D = new CSS3DObject(element);
-  scene.add(objectCss3D);
+  objectCss3D.position.copy(car.position);
+  objectCss3D.position.x += 50;
+  objectCss3D.scale.set(0.1, 0.1, 0.2);
+  objectCss3D.rotation.y = Math.PI
+  return objectCss3D;
 }
 
 export function loaderModel(scene) {
@@ -74,12 +78,17 @@ export function loaderModel(scene) {
       if (child.name.includes("小车") && !child.name.includes("停车")) {
         carList.push(child);
       }
+
+      if (child.name.includes("停车") && !child.name.includes("停车场")) {
+        const board = createBoard(child, child.name);
+        console.log(board, "___board___");
+        scene.add(board);
+      }
     });
 
     carList.forEach(car => {
       carAnimation(car, points)
     })
-    createTag(scene);
   });
 
 }
