@@ -29,6 +29,7 @@ export default class Main {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     //   更新摄像机的投影矩阵
     this.camera.updateProjectionMatrix();
+    this.camera.tagName = "主界面";
     this.scene.add(this.camera);
 
     // 初始化控制器
@@ -42,12 +43,13 @@ export default class Main {
   }
 
   // 连续渲染
-  animate(time = 0) {
+  render(time = 0) {
     this.beforeRender(time)
+    this.controls.update();
     this.renderer.render(this.scene, this.camera)
     this.css3DRenderer.render(this.scene, this.camera);
     requestAnimationFrame((time) => {
-      this.animate(time)
+      this.render(time)
     })
   }
 }

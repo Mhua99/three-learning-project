@@ -10,7 +10,7 @@ const { main } = init();
 
 onMounted(() => {
   sceneRef.value.appendChild(main.renderer.domElement);
-  main.animate();
+  main.render();
 });
 
 // 监听屏幕大小改变的变化，设置渲染的尺寸

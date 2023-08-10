@@ -1,30 +1,18 @@
 import * as THREE from "three"
+import { GUI } from 'dat.gui'
+
 export default function (scene) {
-  class CustomSinCurve extends THREE.Curve {
+  const material = new THREE.LineBasicMaterial({
+    color: 0x0000ff
+  });
 
-    constructor(scale = 1) {
+  const points = [];
+  points.push(new THREE.Vector3(- 10, 0, 0));
+  points.push(new THREE.Vector3(0, 10, 0));
+  points.push(new THREE.Vector3(10, 0, 0));
 
-      super();
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-      this.scale = scale;
-
-    }
-
-    getPoint(t, optionalTarget = new THREE.Vector3()) {
-
-      const tx = t * 3 - 1.5;
-      const ty = Math.sin(2 * Math.PI * t);
-      const tz = 0;
-
-      return optionalTarget.set(tx, ty, tz).multiplyScalar(this.scale);
-
-    }
-
-  }
-
-  const path = new CustomSinCurve(10);
-  const geometry = new THREE.TubeGeometry(path, 1, 1, 2, false);
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-  const mesh = new THREE.Mesh(geometry, material);
-  scene.add(mesh);
+  const line = new THREE.Line(geometry, material);
+  scene.add(line);
 }
