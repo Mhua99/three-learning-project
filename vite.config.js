@@ -13,5 +13,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     },
     extensions: [".vue", ".js"]
+  },
+  server: {
+    port: 9999
   }
 })

@@ -5,9 +5,14 @@
         <div class="item">
           <h3 class="title">
             <p>视角：</p>
-            <select class="selectValue">
-              <option value="1">1</option>
-              <option value="2">2</option>
+            <select class="selectValue" @change="handleChange">
+              <option
+                v-for="(item, index) of state.cameraList"
+                :key="index"
+                :value="item.tagName"
+              >
+                {{ item.tagName }}
+              </option>
             </select>
           </h3>
         </div>
@@ -15,14 +20,14 @@
       </div>
       <div class="wrapItem">
         <div class="item">
-          <h3 class="title">路灯总数：20</h3>
+          <h3 class="title">路灯总数：{{ state.loader.streetLampCount }}</h3>
           <h4 class="subtitle">路灯损坏数：0</h4>
         </div>
         <div class="bottomStyle"></div>
       </div>
       <div class="wrapItem">
         <div class="item">
-          <h3 class="title">停车场车辆：20</h3>
+          <h3 class="title">停车场车辆：{{ state.loader.stopCarCount }}</h3>
           <h4 class="subtitle">停车超过3天：0</h4>
         </div>
         <div class="bottomStyle"></div>
@@ -33,42 +38,32 @@
 </template>
 
 <script setup>
-const showWall = () => {
-  console.log(1);
-};
+import Mitt from "@/utils/mitt.js";
+const state = reactive({
+  main: {},
+  loader: {},
+  cameraList: [],
+});
 
-const showFloor1 = () => {
-  console.log(1);
-};
+Mitt.on("loaderMounted", (loader, main) => {
+  state.cameraList = [main.camera, ...loader.cameraList];
+  state.loader = loader;
+  state.main = main;
+});
 
-const showFloor2 = () => {
-  console.log(1);
-};
-
-let open = false;
-const showAll = () => {
-  console.log(1);
-};
-
-const flatFighter = () => {
-  console.log(1);
-};
-
-const recoverFighter = () => {
-  console.log(1);
-};
-
-const pointsFighter = () => {
-  console.log(1);
-};
-
-const pointsBlast = () => {
-  console.log(1);
-};
-
-const pointsBack = () => {
-  console.log(1);
-};
+function handleChange(event) {
+  const camera = state.cameraList.find((item) => {
+    return item.tagName == event.target.value;
+  });
+  if (camera) {
+    const {
+      domElement: { clientWidth, clientHeight },
+    } = state.main.renderer;
+    state.main.camera = camera;
+    state.main.camera.aspect = clientWidth / clientHeight;
+    state.main.camera.updateProjectionMatrix();
+  }
+}
 </script>
 
 <style lang="scss" scoped>

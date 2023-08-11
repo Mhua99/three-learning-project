@@ -8,5 +8,4 @@ import pageScene from "@/components/scene.vue";
 import pageOperate from "@/components/operatePage.vue";
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

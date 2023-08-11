@@ -1,17 +1,26 @@
+import * as THREE from "three"
+import Mitt from "@/utils/mitt.js"
 import Main from "./main"
 import { LoaderModel } from "./gltfLoader"
 import { initLight } from "./light"
 import { initAxes } from "./axes"
 import initTest from "./test"
+import { initEvent } from "./event"
 import { useGUI } from "./gui"
 
 export function init() {
   const main = new Main();
+
   // 加载模型
-  new LoaderModel(main.scene);
-  // , (_this) => {
-  //   useGUI(_this.cameraList, main);
-  // }
+  const loaderModel = new LoaderModel(main.scene, (load) => {
+    Mitt.emit('loaderMounted', load, main)
+  });
+
+  main.beforeRender = () => {
+    loaderModel.parkingLotDoorCamera.forEach(item => {
+      item.update();
+    })
+  }
 
   // 初始化灯光
   initLight(main.scene);
@@ -19,11 +28,15 @@ export function init() {
   // 辅助轴
   initAxes(main.scene);
 
+  // 初始化事件
+  initEvent(main);
+
   // 测试
   initTest(main.scene);
 
   return {
-    main
+    main,
+    loaderModel
   }
 
 }
