@@ -2,7 +2,9 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer"
-import gsap from "gsap";
+import Car from "./body/car"
+import DoorCamera from "./body/doorCamera"
+import ParkingSpace from "./body/parkingSpace"
 
 
 export class RotateAroundPointClass {
@@ -66,37 +68,21 @@ export class RotateAroundPointClass {
   }
 }
 
-// 停车场门口摄像头
-class DoorCamera {
-  time = 0;
-  second = 1;
-  aroundCount = 360;
-  constructor(obj) {
-    this.camera = obj;
-  }
-  update() {
-    this.time = (this.time + this.second) % this.aroundCount;
-    if (Math.abs(this.time) < 150) {
-      this.time = 150
-      this.second = Math.sign(this.second) ? -this.second : this.second
-    } else if (Math.abs(this.time) > 340) {
-      this.time = 340;
-      this.second = Math.sign(this.second) ? -this.second : this.second
-    }
-    const y = (this.time / this.aroundCount) * Math.PI * 2
-    this.camera.rotation.y = y
-    this.activeCamera && (this.activeCamera.rotation.y = y)
-  }
-}
-
 export class LoaderModel {
   constructor(scene, cb) {
+    // 路灯数量
     this.streetLampCount = 0;
+    // 停车场车辆数量
     this.stopCarCount = 0;
+    // 车辆数组
     this.carList = []
+    // 摄像机数组
     this.cameraList = []
-    this.points = [];
+    // 停车位数组
     this.parkingLotDoorCamera = [];
+    this.points = [];
+    this.parkingSpaceList = [];
+    // 渲染函数
     this.loader(scene, cb);
   }
   loader(scene, cb) {
@@ -105,7 +91,6 @@ export class LoaderModel {
     dracoLoader.setDecoderPath("./draco/");
     gltfLoader.setDRACOLoader(dracoLoader);
     gltfLoader.load("./model/city.glb", (gltf) => {
-      console.log(gltf.scene);
       scene.add(gltf.scene);
       // 场景子元素遍历
       gltf.scene.traverse((child) => {
@@ -113,8 +98,8 @@ export class LoaderModel {
           this.getTrajectory(child);
         }
 
-        if (child.name.includes("小车") && !child.name.includes("停车")) {
-          this.carList.push(child);
+        if (child.name.includes("红色小车1") && !child.name.includes("停车")) {
+          this.carList.push(new Car(child));
         }
 
         if (child.name.includes("停车") && !child.name.includes("停车场")) {
@@ -124,25 +109,34 @@ export class LoaderModel {
         }
 
         if (child.name.includes('停车场门口摄像头')) {
-          const doorCamera = new DoorCamera(child)
-          doorCamera.activeCamera = this.addCamera(child.position.x, child.position.y, child.position.z);
-          doorCamera.activeCamera.tagName = child.name;
-          this.cameraList.push(doorCamera.activeCamera);
+          const activeCamera = this.addCamera(child.position.x, child.position.y, child.position.z);
+          activeCamera.tagName = child.name;
+          const doorCamera = new DoorCamera(child, activeCamera, child.name.includes('右') ? -1 : 1)
+          this.cameraList.push(activeCamera);
           this.parkingLotDoorCamera.push(doorCamera);
         }
 
         if (child.name.includes('路灯')) {
           this.streetLampCount++;
         }
+
+        if (child.name.includes("车位")) {
+          // if (child.name == '车位-里-左边2') {
+          this.parkingSpaceList.push(new ParkingSpace(child, scene));
+          this.test(scene, child.position.x, child.position.y, child.position.z)
+          // }
+        }
       });
 
-      this.carList.forEach(car => {
-        const camera = this.addCamera(car.position.x, car.position.y, car.position.z);
-        camera.tagName = car.name;
-        car.camera = camera;
-        car.children.push(camera)
+      this.carList.forEach(item => {
+        const camera = this.addCamera(item.car.position.x, item.car.position.y, item.car.position.z);
+        camera.tagName = item.car.name;
+        item.camera = camera;
+        // car.children.push(camera)
         this.cameraList.push(camera);
-        this.carAnimation(car, this.points)
+        item.addTrajectory(this.parkingSpaceList[2]['routeList'][0]);
+        // item.trajectory = this.parkingSpaceList[2]['routeList'][0];
+        // item.carAnimation()
       })
       cb && cb(this)
     });
@@ -179,33 +173,6 @@ export class LoaderModel {
     return camera
   }
 
-  carAnimation(car, points) {
-    const newPoints = [...points]
-    const len = Math.floor(Math.random() * newPoints.length);
-    const splitPoint = newPoints.splice(0, len);
-    const curve = new THREE.CatmullRomCurve3([...newPoints, ...splitPoint]);
-    const params = {
-      curveProgress: 0
-    }
-    gsap.to(params, {
-      curveProgress: 0.999,
-      duration: 30,
-      repeat: -1,
-      onUpdate: () => {
-        const point = curve.getPoint(params.curveProgress);
-        car.position.set(point.x, point.y, point.z);
-        car.camera.position.set(point.x, point.y + 10, point.z);
-        if (params.curveProgress + 0.001 < 1) {
-          const point = curve.getPoint(params.curveProgress + 0.001);
-          const newPoint = point.clone();
-          newPoint.y += 9;
-          car.lookAt(point);
-          car.camera.lookAt(newPoint);
-        }
-      },
-    });
-  }
-
   createBoard(car, name) {
     const element = document.createElement("div");
     element.className = "carStopInfo";
@@ -230,5 +197,17 @@ export class LoaderModel {
     const cube = new THREE.Mesh(geometry, material);
     cube.position.set(x, y, z)
     scene.add(cube);
+  }
+
+  render(time) {
+    // 停车场监控旋转
+    this.parkingLotDoorCamera.forEach(item => {
+      item.update(time);
+    });
+
+    // 车辆运动
+    this.carList.forEach(item => {
+      item.update(time);
+    })
   }
 }

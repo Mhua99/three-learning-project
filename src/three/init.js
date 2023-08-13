@@ -16,10 +16,11 @@ export function init() {
     Mitt.emit('loaderMounted', load, main)
   });
 
+  // 设置时钟
+  const clock = new THREE.Clock();
   main.beforeRender = () => {
-    loaderModel.parkingLotDoorCamera.forEach(item => {
-      item.update();
-    })
+    let time = clock.getElapsedTime();
+    loaderModel.render(time);
   }
 
   // 初始化灯光
@@ -32,7 +33,7 @@ export function init() {
   initEvent(main);
 
   // 测试
-  initTest(main.scene);
+  // initTest(main.scene);
 
   return {
     main,
