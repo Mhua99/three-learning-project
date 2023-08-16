@@ -1,11 +1,24 @@
 import * as THREE from "three";
 
 export default class ParkingSpace {
-  constructor(obj, scene, isUse = false, entrance = new THREE.Vector3(72, 1, -120)) {
+  constructor(obj, scene, isUse = false) {
+    // 车位对象
     this.space = obj;
-    this.entrance = entrance;
+    // 大门位置入口
+    this.entrance = new THREE.Vector3(72, 1, -120);
+    // 车位朝向点位
+    this.direction;
+    // 车位左边点位
+    this.directionLeft;
+    // 车位右边点位;
+    this.directionRight;
+    // 车位是否占用
     this.isUse = isUse;
+    // 进入该车位的具体路线
     this.routeList = [];
+    // 设置车位正方向
+    this.getDirection();
+    // 添加进出路线方法
     this.addIfRoute(scene);
   }
   addLine(start, middle, end) {
@@ -19,7 +32,6 @@ export default class ParkingSpace {
 
     const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 
-    //Create the final object to add to the scene
     return new THREE.Line(geometry, material);
   }
   generate(position, direction, num) {
@@ -38,34 +50,59 @@ export default class ParkingSpace {
   }
   // 里面车位添加路线
   insideAddLine(scene) {
-    const name = this.space.name;
-    const isHaveLeft = name.includes("左墙") || name.includes("边");
-    const isHaveRight = name.includes("右墙") || name.includes("边");
-    const point = this.space.position;
-    const startPoint = this.generate(point);
-    const middleRightPoint = this.generate(point, "z", -40);
-    const middleLeftPoint = this.generate(point, "z", -40);
-    const endPoint = this.generate(middleLeftPoint, "x", -40);
-    let line1_start = [];
-    let line1_end = []
-    if (isHaveLeft) {
-      line1_start = this.getDetailPoint(endPoint, middleLeftPoint, startPoint);
-      line1_end = this.getDetailPoint(this.entrance, middleLeftPoint, endPoint);
+
+    if (this.directionLeft) {
+      let line1_start = [];
+      let line1_end = [];
+      line1_start = this.getDetailPoint(this.directionLeft, this.direction, this.space.position);
+      line1_end = this.getDetailPoint(this.entrance, this.direction, this.directionLeft);
       this.routeList.push([{ line: line1_end, direction: 1 }, { line: line1_start, direction: -1 }]);
     }
 
-    let line2_start = [];
-    let line2_end = []
-    if (isHaveRight) {
-      line2_start = this.getDetailPoint(startPoint, middleRightPoint, endPoint);
-      line2_end = this.getDetailPoint(this.entrance, middleRightPoint, endPoint);
-      this.routeList.push([{ line: line2_start, direction: -1 }, { line: line2_end, direction: 1 }]);
+    if (this.directionRight) {
+      let line2_start = [];
+      let line2_end = [];
+      line2_start = this.getDetailPoint(this.directionRight, this.direction, this.space.position);
+      line2_end = this.getDetailPoint(this.entrance, this.direction, this.directionRight);
+      this.routeList.push([{ line: line2_end, direction: 1 }, { line: line2_start, direction: -1 }]);
     }
   }
   // 判断添加的路线
   addIfRoute(scene) {
     if (this.space.name.includes("里")) {
       this.insideAddLine(scene);
+    }
+  }
+  // 获取车位朝向
+  getDirection() {
+    const position = this.space.position;
+    const name = this.space.name;
+    if (name.includes("里")) {
+      this.direction = this.generate(position, "z", -40)
+      const isHaveLeft = name.includes("右墙") || name.includes("边");
+      const isHaveRight = name.includes("左墙") || name.includes("边");
+      if (isHaveLeft) {
+        this.directionLeft = this.generate(this.direction, "x", -40);
+      }
+      if (isHaveRight) {
+        this.directionRight = this.generate(this.direction, "x", 40);
+      }
+    }
+
+    if (name.includes("车位-外-左")) {
+      this.direction = this.generate(position, "x", -40);
+      this.directionLeft = this.generate(this.direction, "z", 40);
+      if (name.includes("2")) {
+        this.directionRight = this.generate(this.direction, "z", -40);
+      }
+    }
+
+    if (name.includes("车位-外-右")) {
+      this.direction = this.generate(position, "x", 40);
+      this.directionRight = this.generate(this.direction, "z", 40);
+      if (name.includes("2")) {
+        this.directionLeft = this.generate(this.direction, "z", -40);
+      }
     }
   }
 }

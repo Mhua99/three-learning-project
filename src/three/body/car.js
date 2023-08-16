@@ -2,7 +2,7 @@ import * as THREE from "three";
 import gsap from "gsap";
 
 export default class Car {
-  constructor(car, status = 'motion') {
+  constructor(car, status = 'cease') {
     this.car = car;
     this.camera = null;
     this.originalTrajectory = [];
@@ -18,6 +18,8 @@ export default class Car {
     this.index = 0;
     // 方向
     this.direction = 1;
+    // 运动是否循环
+    this.loop = false;
   }
   carAnimation() {
     const len = Math.floor(Math.random() * this.trajectory.length);
@@ -44,27 +46,32 @@ export default class Car {
       },
     });
   }
-  addTrajectory(trajectory, useTime = 4) {
+  addTrajectory(trajectory, isMix = false) {
     this.originalTrajectory = trajectory;
-    this.useTime = useTime;
+    if (isMix) {
+      this.startPosition = Math.random() * this.useTime;
+    } else {
+      this.startPosition = 0;
+    }
     this.dealTrajectory();
   }
   dealTrajectory() {
-    if (this.index == this.originalTrajectory.length) {
+    if (this.index == this.originalTrajectory.length && !this.loop) {
       this.status = 'cease';
       this.index = 0;
       return;
     }
-    const route = this.originalTrajectory[this.index];
+    const route = this.originalTrajectory[this.index % this.originalTrajectory.length];
     this.useTime = route.useTime ? route.useTime : this.useTime;
     this.direction = route.direction ? route.direction : 1;
     this.curve = new THREE.CatmullRomCurve3(route.line);
   }
   update(time) {
-    if (this.status == 'cease') return;
-    const index = (time % this.useTime) / this.useTime;
+    if (this.status == 'cease' || !this.curve) return;
+    const index = ((time + this.startPosition) % this.useTime) / this.useTime;
     const point = this.curve.getPoint(index);
-    if (this.lastIndex < index && index + 0.001 * this.direction < 1) {
+    const isTrigger = index + 0.001 * this.direction;
+    if (this.lastIndex < index && 0 <= isTrigger && isTrigger < 1) {
       this.lastIndex = index;
       this.car.position.set(point.x, point.y, point.z);
       const newPoint = this.curve.getPoint(index + 0.001 * this.direction);

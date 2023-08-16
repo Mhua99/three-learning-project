@@ -80,7 +80,9 @@ export class LoaderModel {
     this.cameraList = []
     // 停车位数组
     this.parkingLotDoorCamera = [];
-    this.points = [];
+    // 主要道路轨迹
+    this.mainRoadTrajectory = [];
+    // 停车位
     this.parkingSpaceList = [];
     // 渲染函数
     this.loader(scene, cb);
@@ -98,8 +100,9 @@ export class LoaderModel {
           this.getTrajectory(child);
         }
 
-        if (child.name.includes("红色小车1") && !child.name.includes("停车")) {
-          this.carList.push(new Car(child));
+        if (child.name.includes("小车") && !child.name.includes("停车")) {
+          child.visible = false;
+          this.templateCar = child;
         }
 
         if (child.name.includes("停车") && !child.name.includes("停车场")) {
@@ -121,36 +124,65 @@ export class LoaderModel {
         }
 
         if (child.name.includes("车位")) {
-          // if (child.name == '车位-里-左边2') {
           this.parkingSpaceList.push(new ParkingSpace(child, scene));
-          this.test(scene, child.position.x, child.position.y, child.position.z)
-          // }
         }
       });
 
-      this.carList.forEach(item => {
+      // 生成汽车
+      for (let i = 0; i < 6; i++) {
+        const num = Math.round(Math.random());
+        const car = this.createCar(this.templateCar, num);
+        const newCar = new Car(car);
+        this.carList.push(newCar);
+        scene.add(car);
+      }
+      this.carList.forEach((item, index) => {
         const camera = this.addCamera(item.car.position.x, item.car.position.y, item.car.position.z);
         camera.tagName = item.car.name;
         item.camera = camera;
-        // car.children.push(camera)
         this.cameraList.push(camera);
-        item.addTrajectory(this.parkingSpaceList[2]['routeList'][0]);
-        // item.trajectory = this.parkingSpaceList[2]['routeList'][0];
-        // item.carAnimation()
+        item.car.status == 'motion' && item.addTrajectory(this.mainRoadTrajectory, true);
+        item.loop = true;
+        item.status = item.car.status;
       })
       cb && cb(this)
     });
   }
 
+  // 创建小车 status 0/1 (停车/运动)
+  createCar(car, status) {
+    const newCar = car.clone();
+    const newMatril = newCar.children[0].material.clone();
+    newCar.visible = true;
+    newCar.children[0].material = newMatril;
+    newCar.name = Math.random()
+    newMatril.color.set(new THREE.Color(Math.random(), Math.random(), Math.random()));
+    // 停车位上
+    if (status == 0) {
+      const list = this.parkingSpaceList.filter(item => !item.isUse);
+      const index = Math.floor(Math.random() * list.length);
+      const place = list[index];
+      const { x, y, z } = place.space.position
+      newCar.position.set(x, y, z);
+      newCar.lookAt(place.direction);
+      place.isUse = true;
+      newCar.status = 'cease'
+    } else {
+      newCar.status = 'motion';
+    }
+    return newCar
+  }
+
   getTrajectory(child) {
     child.visible = false;
     // 根据点创建曲线
+    const points = []
     for (
       let i = child.geometry.attributes.position.count - 1;
       i >= 0;
       i--
     ) {
-      this.points.push(
+      points.push(
         new THREE.Vector3(
           child.geometry.attributes.position.getX(i) * 36,
           child.geometry.attributes.position.getY(i),
@@ -158,6 +190,8 @@ export class LoaderModel {
         )
       );
     }
+
+    this.mainRoadTrajectory.push({ line: points, direction: 1 });
   }
 
   addCamera(x, y, z) {
