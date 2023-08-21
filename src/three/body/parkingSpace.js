@@ -6,6 +6,8 @@ export default class ParkingSpace {
     this.space = obj;
     // 大门位置入口
     this.entrance = new THREE.Vector3(72, 1, -120);
+    // 大门靠近马路点位
+    this.roadNearPosition = new THREE.Vector3(72, 1, -190);
     // 车位朝向点位
     this.direction;
     // 车位左边点位
@@ -19,21 +21,9 @@ export default class ParkingSpace {
     // 设置车位正方向
     this.getDirection();
     // 添加进出路线方法
-    this.addIfRoute(scene);
+    this.insideAddLine(scene);
   }
-  addLine(start, middle, end) {
-    const curve = new THREE.QuadraticBezierCurve3(
-      start,
-      middle,
-      end
-    );
-    const points = curve.getPoints(50);
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-
-    return new THREE.Line(geometry, material);
-  }
+  // 克隆
   generate(position, direction, num) {
     const point = position.clone();
     direction && (point[direction] += num)
@@ -48,9 +38,13 @@ export default class ParkingSpace {
     );
     return curve.getPoints(50);
   }
+  // 计算当前车辆位置到大门路线
+  trajectoryDoor(position) {
+    return { line: this.getDetailPoint(position, this.roadNearPosition, this.entrance), direction: 1, useTime: 4 }
+  }
   // 里面车位添加路线
-  insideAddLine(scene) {
-
+  insideAddLine() {
+    // 左边路线
     if (this.directionLeft) {
       let line1_start = [];
       let line1_end = [];
@@ -58,7 +52,7 @@ export default class ParkingSpace {
       line1_end = this.getDetailPoint(this.entrance, this.direction, this.directionLeft);
       this.routeList.push([{ line: line1_end, direction: 1 }, { line: line1_start, direction: -1 }]);
     }
-
+    // 右边路线
     if (this.directionRight) {
       let line2_start = [];
       let line2_end = [];
@@ -67,20 +61,14 @@ export default class ParkingSpace {
       this.routeList.push([{ line: line2_end, direction: 1 }, { line: line2_start, direction: -1 }]);
     }
   }
-  // 判断添加的路线
-  addIfRoute(scene) {
-    if (this.space.name.includes("里")) {
-      this.insideAddLine(scene);
-    }
-  }
   // 获取车位朝向
   getDirection() {
     const position = this.space.position;
     const name = this.space.name;
     if (name.includes("里")) {
       this.direction = this.generate(position, "z", -40)
-      const isHaveLeft = name.includes("右墙") || name.includes("边");
-      const isHaveRight = name.includes("左墙") || name.includes("边");
+      const isHaveLeft = name.includes("左墙") || name.includes("边");
+      const isHaveRight = name.includes("右墙") || name.includes("边");
       if (isHaveLeft) {
         this.directionLeft = this.generate(this.direction, "x", -40);
       }

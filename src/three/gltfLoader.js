@@ -1,72 +1,9 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-import { CSS3DObject } from "three/examples/jsm/renderers/CSS3DRenderer"
 import Car from "./body/car"
 import DoorCamera from "./body/doorCamera"
 import ParkingSpace from "./body/parkingSpace"
-
-
-export class RotateAroundPointClass {
-  curr = 0;
-  aroundCount;
-  obj;
-  axis;
-  spaceAngle;
-  center;
-  dir = 1;
-  repeat;
-  length;
-
-  constructor(
-    /**
-     * 旋转的物体
-     */
-    obj,
-    /**
-     * 绕哪一轴旋转
-     */
-    axis,
-    /**
-     * 围绕旋转的点坐标
-     */
-    center,
-    /**
-     * 旋转一周设置的旋转度数需要几次 决定速度
-     * 默认一次旋转一度 默认360次
-     */
-    aroundCount = 360,
-    /**
-     * 旋转多少度
-     * 默认 360度
-     */
-    aroundAngle = 360,
-    /**
-     * 是否反复运动 默认false
-     */
-    repeat = false
-  ) {
-    this.obj = obj;
-    this.center = center;
-    this.aroundCount = aroundCount;
-    this.axis = ["x", "y", "z"].filter((a) => a != axis);
-    this.repeat = repeat;
-    const onceAngle = (Math.PI * 2) / 360;
-    this.spaceAngle = (aroundAngle / aroundCount) * onceAngle;
-    this.length = center.distanceTo(obj.position);
-  }
-
-  update() {
-    this.curr = (this.curr + this.dir) % this.aroundCount;
-    if (this.repeat && (this.curr >= this.aroundCount - 1 || this.curr == 0)) {
-      this.dir *= -1;
-    }
-    const x = Math.sin(this.spaceAngle * this.curr) * this.length;
-    const y = Math.cos(this.spaceAngle * this.curr) * this.length;
-    this.obj.position[this.axis[0]] = x + this.center[this.axis[0]];
-    this.obj.position[this.axis[1]] = y + this.center[this.axis[1]];
-  }
-}
 
 export class LoaderModel {
   constructor(scene, cb) {
@@ -84,6 +21,8 @@ export class LoaderModel {
     this.mainRoadTrajectory = [];
     // 停车位
     this.parkingSpaceList = [];
+    // 场景
+    this.scene = scene;
     // 渲染函数
     this.loader(scene, cb);
   }
@@ -100,15 +39,9 @@ export class LoaderModel {
           this.getTrajectory(child);
         }
 
-        if (child.name.includes("小车") && !child.name.includes("停车")) {
+        if (child.name.includes("小车")) {
           child.visible = false;
           this.templateCar = child;
-        }
-
-        if (child.name.includes("停车") && !child.name.includes("停车场")) {
-          const board = this.createBoard(child, child.name);
-          this.stopCarCount++;
-          scene.add(board);
         }
 
         if (child.name.includes('停车场门口摄像头')) {
@@ -129,21 +62,25 @@ export class LoaderModel {
       });
 
       // 生成汽车
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 8; i++) {
         const num = Math.round(Math.random());
         const car = this.createCar(this.templateCar, num);
         const newCar = new Car(car);
         this.carList.push(newCar);
         scene.add(car);
       }
-      this.carList.forEach((item, index) => {
-        const camera = this.addCamera(item.car.position.x, item.car.position.y, item.car.position.z);
+
+      this.carList.forEach((item) => {
+        const camera = this.addCamera(item.car.position.x, item.car.position.y + 10, item.car.position.z);
         camera.tagName = item.car.name;
-        item.camera = camera;
+        item.place = item.car.place;
+        item.addCamera(camera)
         this.cameraList.push(camera);
         item.car.status == 'motion' && item.addTrajectory(this.mainRoadTrajectory, true);
+        item.car.status == 'cease' && (item.stopInitTime = parseInt(Math.random() * 3000));
         item.loop = true;
         item.status = item.car.status;
+        item.createBoard(scene);
       })
       cb && cb(this)
     });
@@ -155,21 +92,22 @@ export class LoaderModel {
     const newMatril = newCar.children[0].material.clone();
     newCar.visible = true;
     newCar.children[0].material = newMatril;
-    newCar.name = Math.random()
+    newCar.name = "小车" + Math.floor(Math.random() * 100000);
     newMatril.color.set(new THREE.Color(Math.random(), Math.random(), Math.random()));
+    const list = this.parkingSpaceList.filter(item => !item.isUse);
+    const index = Math.floor(Math.random() * list.length);
+    const place = list[index];
     // 停车位上
     if (status == 0) {
-      const list = this.parkingSpaceList.filter(item => !item.isUse);
-      const index = Math.floor(Math.random() * list.length);
-      const place = list[index];
       const { x, y, z } = place.space.position
       newCar.position.set(x, y, z);
       newCar.lookAt(place.direction);
-      place.isUse = true;
       newCar.status = 'cease'
     } else {
       newCar.status = 'motion';
     }
+    place.isUse = true;
+    newCar.place = place;
     return newCar
   }
 
@@ -207,24 +145,6 @@ export class LoaderModel {
     return camera
   }
 
-  createBoard(car, name) {
-    const element = document.createElement("div");
-    element.className = "carStopInfo";
-    element.innerHTML = `
-      <div class="main">
-        <h3>${name}</h3>
-        <p>停留时间：25分钟</p>
-      </div>
-    `;
-
-    const objectCss3D = new CSS3DObject(element);
-    objectCss3D.position.copy(car.position);
-    objectCss3D.position.x += 50;
-    objectCss3D.scale.set(0.1, 0.1, 0.2);
-    objectCss3D.rotation.y = Math.PI
-    return objectCss3D;
-  }
-
   test(scene, x, y, z) {
     const geometry = new THREE.BoxGeometry(10, 10, 10);
     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -241,7 +161,7 @@ export class LoaderModel {
 
     // 车辆运动
     this.carList.forEach(item => {
-      item.update(time);
+      item.update(time, this.scene);
     })
   }
 }

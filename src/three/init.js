@@ -4,9 +4,7 @@ import Main from "./main"
 import { LoaderModel } from "./gltfLoader"
 import { initLight } from "./light"
 import { initAxes } from "./axes"
-import initTest from "./test"
 import { initEvent } from "./event"
-import { useGUI } from "./gui"
 
 export function init() {
   const main = new Main();
