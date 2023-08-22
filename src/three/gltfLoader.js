@@ -4,6 +4,7 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import Car from "./body/car"
 import DoorCamera from "./body/doorCamera"
 import ParkingSpace from "./body/parkingSpace"
+import Sign from "./body/sign"
 
 export class LoaderModel {
   constructor(scene, cb) {
@@ -82,6 +83,9 @@ export class LoaderModel {
         item.status = item.car.status;
         item.createBoard(scene);
       })
+
+      this.sign = new Sign();
+      scene.add(this.sign.mesh)
       cb && cb(this)
     });
   }

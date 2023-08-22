@@ -12,9 +12,10 @@ export default class Main {
 
     this.renderer = new WebGLRenderer({ antialias: true })
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // 允许渲染器产生阴影贴图
     this.renderer.shadowMap.enabled = true;
     this.renderer.setClearColor(0xaaaaaa)
-    
+
     // 创建透视相机
     this.camera = new PerspectiveCamera(
       75,
@@ -36,6 +37,8 @@ export default class Main {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     // 设置控制器阻尼
     this.controls.enableDamping = true;
+    this.controls.maxPolarAngle = Math.PI / 2;
+    this.controls.minPolarAngle = Math.PI / 18;
 
     this.css3DRenderer = new CSS3DRenderer();
     this.css3DRenderer.setSize(window.innerWidth, window.innerHeight);

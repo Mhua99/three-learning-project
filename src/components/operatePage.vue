@@ -31,7 +31,7 @@
       </div>
     </div>
     <div class="rightContent">
-      <div class="carItem" v-for="item of state.carList" :key="item.name">
+      <div class="carItem" @click="handleClick(item, $event)" v-for="item of state.carList" :key="item.name">
         <h3 class="title">{{ item.car.name }}</h3>
         <div class="content">
           <div class="left">停留：{{ item.stopTime }}分</div>
@@ -89,6 +89,15 @@ function handleChange(event) {
     state.main.camera.aspect = clientWidth / clientHeight;
     state.main.camera.updateProjectionMatrix();
   }
+}
+
+function handleClick(item, event) {
+  // 设置精灵图位置
+  const position = item.car.position.clone();
+  position.y += 50;
+  // 显示精灵图
+  state.loader.sign.show(position);
+  event.stopPropagation();
 }
 </script>
 
@@ -195,11 +204,13 @@ function handleChange(event) {
     padding: 10px;
     width: 240px;
     background-color: rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
 
     .carItem {
       padding: 10px;
       color: rgb(115, 180, 255);
       font-size: 13px;
+      cursor: pointer;
 
       .title {
         margin-bottom: 10px;

@@ -15,9 +15,14 @@ export function initEvent(main) {
     main.css3DRenderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // 点击屏幕事件
+  const mouse = new THREE.Vector2();
+
+  // 点击屏幕事件 
   window.addEventListener("click", (event) => {
-    event.preventDefault();
+    // event.preventDefault();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -((event.clientY / window.innerHeight) * 2 - 1);
+
     const vector = new THREE.Vector3(); //三维坐标对象
     vector.set(
       (event.clientX / window.innerWidth) * 2 - 1,
@@ -29,6 +34,7 @@ export function initEvent(main) {
       main.camera.position,
       vector.sub(main.camera.position).normalize()
     );
+    raycaster.setFromCamera(vector, main.camera);
     const intersects = raycaster.intersectObjects(main.scene.children);
     if (intersects.length > 0) {
       const selected = intersects[0]; //取第一个物体
