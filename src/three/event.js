@@ -19,6 +19,9 @@ export function initEvent(main) {
 
   // 点击屏幕事件 
   window.addEventListener("click", (event) => {
+    if(event.target.tagName !== 'CANVAS') {
+      return;
+    }
     // event.preventDefault();
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -((event.clientY / window.innerHeight) * 2 - 1);

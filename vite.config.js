@@ -16,5 +16,6 @@ export default defineConfig({
   },
   server: {
     port: 9999
-  }
+  },
+  publicDir: 'public'  // 显式指定 public 目录为静态资源目录
 })

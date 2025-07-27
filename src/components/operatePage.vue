@@ -1,5 +1,5 @@
 <template>
-  <div id="bigScreen">
+  <div id="bigScreen" v-if="state.show">
     <div class="leftContent">
       <div class="wrapItem">
         <div class="item">
@@ -45,11 +45,13 @@
 
 <script setup>
 import Mitt from "@/utils/mitt.js";
+
 const state = reactive({
   main: {},
   loader: {},
   cameraList: [],
-  carList: []
+  carList: [],
+  show: false
 });
 
 // 超过1天
@@ -67,6 +69,7 @@ Mitt.on("loaderMounted", (loader, main) => {
   state.loader = { ...loader };
   state.main = main;
   state.carList = state.loader.carList.filter(item => item.status == 'cease');
+  state.show = true;
 });
 
 
@@ -202,7 +205,7 @@ function handleClick(item, event) {
 
   .rightContent {
     padding: 10px;
-    width: 240px;
+    width: 260px;
     background-color: rgba(0, 0, 0, 0.5);
     pointer-events: auto;
 
